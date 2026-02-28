@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Inspect Helper - Enable Right Click",
   "version": "1.2.0",
-  "description": "Re-enables right-click and Inspect on websites that block it. Prevents tab from closing when DevTools opens. Developed by Shivam ERP DEV.",
+  "description": "Re-enables right-click and Inspect on websites that block it. Prevents tab from closing when DevTools opens. Developed by SHIVAM ERP DEV.",
   "permissions": ["activeTab", "scripting"],
   "content_scripts": [
     {
