@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Inspect Helper - Enable Right Click",
+  "version": "1.2.0",
+  "description": "Re-enables right-click and Inspect on websites that block it. Prevents tab from closing when DevTools opens. Developed by Shivam ERP DEV.",
+  "permissions": ["activeTab", "scripting"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["anti-debug.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+    "all_frames": true
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Enable Right Click & Inspect",
+    "default_icon": {
+      "16": "logo.jpg",
+      "48": "logo.jpg",
+      "128": "logo.jpg"
+    }
+  },
+  "icons": {
+    "16": "logo.jpg",
+    "48": "logo.jpg",
+    "128": "logo.jpg"
+  }
+}
