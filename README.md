@@ -69,6 +69,10 @@ Chrome does not allow extensions to programmatically open DevTools. This extensi
 - `content.js` – Script to bypass right-click blocks
 - `anti-debug.js` – Prevents tab from closing and neutralizes DevTools detection
 
+## License
+
+This project is licensed under the [MIT License](LICENSE). You may use and modify this extension, but you **must** retain the copyright notice and give proper credit to **SHIVAM ERP DEV** and this repository in any derivative work.
+
 **Developed by SHIVAM ERP DEV.**
 
 ## References
