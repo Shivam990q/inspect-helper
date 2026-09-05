@@ -16,3 +16,12 @@ Thumbs.db
 *.iso
 *.vhdx
 *.vmdk
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.exe
+*.zip
+*.dll
+*.wpress
+ai1wm-backups/
