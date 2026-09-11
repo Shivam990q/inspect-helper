@@ -114,6 +114,17 @@
         div[style*="position:absolute"][style*="z-index"][style*="opacity:0"] {
           pointer-events: none !important;
         }
+
+        /* Force unlock disabled buttons, tabs, and inputs */
+        [disabled], [aria-disabled="true"] {
+          pointer-events: auto !important;
+          cursor: pointer !important;
+          opacity: 1 !important;
+        }
+        .cursor-not-allowed {
+          cursor: pointer !important;
+          opacity: 1 !important;
+        }
       `;
       targetParent.appendChild(style);
     } catch (_) {}
@@ -143,7 +154,39 @@
     } catch (_) {}
   }
 
-  // ─── 6. Re-enable pointer events & attributes on blocked elements ─────────
+  // ─── 6. Unlock Disabled Buttons, Form Elements & Tabs ────────────────────
+  function unlockDisabledElements() {
+    try {
+      // 1. Remove native disabled and aria-disabled locks
+      const disabledEls = document.querySelectorAll('button[disabled], input[disabled], textarea[disabled], select[disabled], [role="tab"][disabled], [aria-disabled="true"]');
+      disabledEls.forEach(el => {
+        try {
+          el.removeAttribute('disabled');
+          if ('disabled' in el) el.disabled = false;
+          el.setAttribute('aria-disabled', 'false');
+          el.classList.remove('cursor-not-allowed', 'opacity-50', 'opacity-60', 'opacity-70', 'disabled');
+          el.style.pointerEvents = 'auto';
+          el.style.cursor = 'pointer';
+          el.style.opacity = '1';
+        } catch (_) {}
+      });
+
+      // 2. Clear parent container wrapper locks (cursor-not-allowed, opacity locks)
+      const wrappers = document.querySelectorAll('.cursor-not-allowed, [class*="cursor-not-allowed"]');
+      wrappers.forEach(el => {
+        try {
+          el.classList.remove('cursor-not-allowed');
+          el.style.cursor = 'auto';
+          el.style.pointerEvents = 'auto';
+          if (el.style.opacity && parseFloat(el.style.opacity) < 1) {
+            el.style.opacity = '1';
+          }
+        } catch (_) {}
+      });
+    } catch (_) {}
+  }
+
+  // ─── 7. Re-enable pointer events & attributes on blocked elements ─────────
   function enablePointerEvents(el) {
     if (!el || !el.style) return;
     try {
@@ -171,10 +214,11 @@
     }
 
     disableOverlayBlockers();
+    unlockDisabledElements();
 
     // Check common container tags
     try {
-      const selectors = ['body', 'div', 'img', 'span', 'p', 'table', 'section', 'article', 'main', 'input', 'textarea'];
+      const selectors = ['body', 'div', 'img', 'span', 'p', 'table', 'section', 'article', 'main', 'input', 'textarea', 'button'];
       document.querySelectorAll(selectors.join(', ')).forEach(el => {
         clearInlineHandlers(el);
       });
