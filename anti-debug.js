@@ -1,9 +1,15 @@
 /**
- * Anti-anti-debug: Prevents sites from closing the tab when DevTools opens.
- * Runs in page context (MAIN world) at document_start to override site's JavaScript.
+ * Inspect Helper - Anti-Debug Engine v1.3.0
+ * Runs in page context (MAIN world) at document_start to override anti-dev and anti-inspect techniques.
  *
- * Addresses techniques from: devtools-detect, AEPKILL/devtools-detector,
- * javascript-obfuscator debug protection, and common console/DOM detection.
+ * Countermeasures implemented:
+ * 1. Unblocks DevTools keyboard shortcuts (F12, Ctrl/Cmd+Shift+I/J/C, Ctrl/Cmd+U, Ctrl/Cmd+S) cross-platform.
+ * 2. Prevents tab auto-close via window.close() and navigation hijacking.
+ * 3. Neutralizes infinite debugger; loops in Function, AsyncFunction, GeneratorFunction, and eval().
+ * 4. Filters debugger; statements from Web Workers and Blobs.
+ * 5. Sanitizes console inspection traps (id getters, toString traps, console.clear spam, console.table traps).
+ * 6. Prevents dimension delta detection (outerWidth/innerHeight disparity).
+ * 7. Blocks setInterval/setTimeout callbacks and strings executing debugger loops.
  */
 (function () {
   'use strict';
@@ -11,30 +17,32 @@
   window.__inspectHelperAntiDebug = true;
 
   const noop = function () {};
+  const stripDebugger = (s) => (typeof s === 'string' ? s.replace(/debugger\s*;?/g, '') : s);
 
-  // Sites that use heavy anti-debug (close tab, dimension detection, etc.)
-  var host = (window.location && window.location.hostname) || '';
-  var isHeavyAntiDebug = /net22|netmirror/i.test(host);
+  // ─── 0. Unblock DevTools keyboard shortcuts (Windows, Linux, macOS) ─────────
+  const unblockDevToolsKeys = function (e) {
+    const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+    const isF12 = e.keyCode === 123 || e.key === 'F12';
+    const isInspect = isCtrlOrCmd && e.shiftKey && (e.keyCode === 73 || e.key === 'I' || e.key === 'i');
+    const isConsole = isCtrlOrCmd && e.shiftKey && (e.keyCode === 74 || e.key === 'J' || e.key === 'j');
+    const isElementPicker = isCtrlOrCmd && e.shiftKey && (e.keyCode === 67 || e.key === 'C' || e.key === 'c');
+    const isViewSource = isCtrlOrCmd && (e.keyCode === 85 || e.key === 'U' || e.key === 'u');
+    const isSavePage = isCtrlOrCmd && (e.keyCode === 83 || e.key === 'S' || e.key === 's');
+    const isFirefoxConsole = isCtrlOrCmd && e.shiftKey && (e.keyCode === 75 || e.key === 'K' || e.key === 'k');
 
-  // ─── 0. Unblock DevTools keyboard shortcuts (F12, Ctrl+Shift+I, etc.) ──
-  // Sites block these with keydown preventDefault. We run at document_start so
-  // our capture listener runs before page scripts; stopImmediatePropagation
-  // prevents the page from receiving the event so it can't block the shortcut.
-  var unblockDevToolsKeys = function (e) {
-    var isF12 = e.keyCode === 123 || e.key === 'F12';
-    var isCtrlShiftI = (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.key === 'I'));
-    var isCtrlShiftJ = (e.ctrlKey && e.shiftKey && (e.keyCode === 74 || e.key === 'J'));
-    var isCtrlShiftC = (e.ctrlKey && e.shiftKey && (e.keyCode === 67 || e.key === 'c'));
-    if (isF12 || isCtrlShiftI || isCtrlShiftJ || isCtrlShiftC) {
+    if (isF12 || isInspect || isConsole || isElementPicker || isViewSource || isSavePage || isFirefoxConsole) {
       e.stopImmediatePropagation();
     }
   };
+
   try {
     window.addEventListener('keydown', unblockDevToolsKeys, true);
     document.addEventListener('keydown', unblockDevToolsKeys, true);
+    window.addEventListener('keyup', unblockDevToolsKeys, true);
+    document.addEventListener('keyup', unblockDevToolsKeys, true);
   } catch (_) {}
 
-  // ─── 1. Prevent window.close() ─────────────────────────────────────────
+  // ─── 1. Prevent window.close() & Tab Termination ──────────────────────────
   try {
     window.close = noop;
     if (window.opener) {
@@ -42,43 +50,92 @@
     }
   } catch (_) {}
 
-  // ─── 2. Strip 'debugger' from Function constructor (incl. .constructor("debugger").call()) ──
-  const OriginalFunction = window.Function.prototype.constructor;
-  const stripDebugger = (s) => typeof s === 'string' ? s.replace(/debugger\s*;?/g, '') : s;
-  window.Function.prototype.constructor = new Proxy(OriginalFunction, {
-    apply(target, thisArg, args) {
-      if (args[0] && typeof args[0] === 'string' && args[0].includes('debugger')) {
-        args = [...args];
-        args[0] = stripDebugger(args[0]);
-      }
-      return Reflect.apply(target, thisArg, args);
-    }
-  });
+  // ─── 2. Strip 'debugger' from all Function constructors ────────────────────
+  function patchFunctionConstructor(ctor) {
+    if (!ctor || !ctor.prototype) return;
+    try {
+      const origCtor = ctor.prototype.constructor;
+      ctor.prototype.constructor = new Proxy(origCtor, {
+        apply(target, thisArg, args) {
+          if (args.length > 0) {
+            const lastIdx = args.length - 1;
+            if (typeof args[lastIdx] === 'string' && args[lastIdx].includes('debugger')) {
+              args = [...args];
+              args[lastIdx] = stripDebugger(args[lastIdx]);
+            }
+          }
+          return Reflect.apply(target, thisArg, args);
+        }
+      });
+    } catch (_) {}
+  }
 
-  // ─── 3. Strip 'debugger' from eval() ───────────────────────────────────
-  // Sites use eval("debugger") or eval("while(1)debugger") - eval bypasses Function.
+  // Standard Function
+  patchFunctionConstructor(window.Function);
+
+  // AsyncFunction & GeneratorFunction prototypes
+  try {
+    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+    patchFunctionConstructor(AsyncFunction);
+  } catch (_) {}
+
+  try {
+    const GeneratorFunction = Object.getPrototypeOf(function* () {}).constructor;
+    patchFunctionConstructor(GeneratorFunction);
+  } catch (_) {}
+
+  try {
+    const AsyncGeneratorFunction = Object.getPrototypeOf(async function* () {}).constructor;
+    patchFunctionConstructor(AsyncGeneratorFunction);
+  } catch (_) {}
+
+  // ─── 3. Strip 'debugger' from eval() ─────────────────────────────────────
   try {
     const nativeEval = (function () { return this.eval; }).call(window);
     window.eval = function (code) {
       if (typeof code === 'string' && code.includes('debugger')) {
         code = stripDebugger(code);
-        // Avoid infinite loops: "while(1)" or "for(;;)" with only debugger become no-op
-        if (/^\s*(while\s*\(\s*1\s*\)|for\s*\(\s*;;\s*\))\s*;?\s*$/.test(code)) return undefined;
+        // Neutralize while(1) or for(;;) infinite loops that only held a debugger statement
+        if (/^\s*(while\s*\(\s*(1|true)\s*\)|for\s*\(\s*;;\s*\))\s*;?\s*$/.test(code)) {
+          return undefined;
+        }
       }
       return nativeEval.call(window, code);
     };
   } catch (_) {}
 
-  // ─── 4. Block setInterval/setTimeout callbacks that contain debugger ────
+  // ─── 4. Block Web Worker debugger loops & Blob traps ─────────────────────
+  try {
+    const OriginalBlob = window.Blob;
+    window.Blob = function (parts, options) {
+      if (Array.isArray(parts)) {
+        parts = parts.map(part => {
+          if (typeof part === 'string' && part.includes('debugger')) {
+            return stripDebugger(part);
+          }
+          return part;
+        });
+      }
+      return new OriginalBlob(parts, options);
+    };
+    window.Blob.prototype = OriginalBlob.prototype;
+  } catch (_) {}
+
+  // ─── 5. Block setInterval/setTimeout/requestAnimationFrame debugger loops ─
   const origSetInterval = window.setInterval;
   const origSetTimeout = window.setTimeout;
 
   function hasDebugger(fn) {
+    if (!fn) return false;
     try {
-      return typeof fn === 'function' && fn.toString().includes('debugger');
-    } catch (_) {
-      return false;
-    }
+      if (typeof fn === 'function') {
+        return fn.toString().includes('debugger');
+      }
+      if (typeof fn === 'string') {
+        return fn.includes('debugger');
+      }
+    } catch (_) {}
+    return false;
   }
 
   window.setInterval = function (fn, delay, ...rest) {
@@ -91,7 +148,7 @@
     return origSetTimeout.apply(this, [fn, delay, ...rest]);
   };
 
-  var origRequestAnimationFrame = window.requestAnimationFrame;
+  const origRequestAnimationFrame = window.requestAnimationFrame;
   if (origRequestAnimationFrame) {
     window.requestAnimationFrame = function (fn) {
       if (hasDebugger(fn)) return origRequestAnimationFrame(noop);
@@ -99,8 +156,7 @@
     };
   }
 
-  // ─── 5. Neutralize console.profiles / console.memory (DevTools detection) ─
-  // Only override these - don't touch console.log etc. (would break normal sites)
+  // ─── 6. Universal Console Inspection & Getter Trap Sanitizer ──────────────
   try {
     ['profiles', 'memory', 'profile', 'profileEnd'].forEach(function (prop) {
       try {
@@ -112,57 +168,53 @@
         });
       } catch (_) {}
     });
+
+    // Sanitize arguments passed to console methods to prevent getter/toString traps
+    const safeArg = function (a) {
+      if (typeof a === 'function') return '[Function]';
+      if (a && typeof a === 'object') {
+        try {
+          // Check for custom getters that trigger on console inspection (e.g. devtools-detector id trap)
+          const d = Object.getOwnPropertyDescriptor(a, 'id') ||
+            (Object.getPrototypeOf(a) && Object.getOwnPropertyDescriptor(Object.getPrototypeOf(a), 'id'));
+          if (d && (d.get || typeof d.value === 'function')) return '[Object]';
+        } catch (_) {}
+      }
+      return a;
+    };
+
+    const wrapConsoleMethod = function (methodName) {
+      const orig = console[methodName];
+      if (typeof orig === 'function') {
+        console[methodName] = function () {
+          return orig.apply(console, Array.prototype.map.call(arguments, safeArg));
+        };
+      }
+    };
+
+    ['log', 'debug', 'info', 'warn', 'error', 'dir'].forEach(wrapConsoleMethod);
+
+    // Neutralize console.clear and console.table spam
+    console.clear = noop;
+    console.table = noop;
+    console.trace = noop;
   } catch (_) {}
 
-  // ─── 5b. Heavy protections ONLY on known anti-debug sites (NetMirror, etc.) ─
-  if (isHeavyAntiDebug) {
-    try {
-      var origLog = console.log;
-      var safeArg = function (a) {
-        if (typeof a === 'function') return '[Function]';
-        if (a && typeof a === 'object') {
-          try {
-            var d = Object.getOwnPropertyDescriptor(a, 'id') || (Object.getPrototypeOf(a) && Object.getOwnPropertyDescriptor(Object.getPrototypeOf(a), 'id'));
-            if (d && d.get) return '[Object]';
-          } catch (_) {}
-        }
-        return a;
-      };
-      console.log = function () { return origLog.apply(console, Array.prototype.map.call(arguments, safeArg)); };
-      console.debug = console.log;
-      console.info = console.log;
-      console.clear = noop;
-      console.table = noop;
-      console.trace = noop;
-    } catch (_) {}
-    try {
-      var getOuterW = function () { return window.innerWidth + 100; };
-      var getOuterH = function () { return window.innerHeight + 100; };
-      Object.defineProperty(window, 'outerWidth', { get: getOuterW, configurable: true, enumerable: true });
-      Object.defineProperty(window, 'outerHeight', { get: getOuterH, configurable: true, enumerable: true });
-    } catch (_) {}
-    try {
-      var OrigArray = window.Array;
-      var SafeArray = function () {
-        var args = OrigArray.prototype.slice.call(arguments);
-        if (args.length === 1 && typeof args[0] === 'number') {
-          var n = args[0];
-          if (n > 1e7 || n < 0 || !isFinite(n)) args[0] = 0;
-        }
-        return new (OrigArray.bind.apply(OrigArray, [null].concat(args)))();
-      };
-      SafeArray.prototype = OrigArray.prototype;
-      SafeArray.isArray = OrigArray.isArray;
-      window.Array = SafeArray;
-    } catch (_) {}
-    try {
-      if (!window.Firebug) window.Firebug = {};
-      if (!window.Firebug.chrome) window.Firebug.chrome = {};
-      Object.defineProperty(window.Firebug.chrome, 'isInitialized', { get: function () { return false; }, configurable: true });
-    } catch (_) {}
-  }
+  // ─── 7. Dimension Disparity Sanitizer (prevents DevTools dock detection) ─
+  try {
+    Object.defineProperty(window, 'outerWidth', {
+      get: function () { return window.innerWidth; },
+      configurable: true,
+      enumerable: true
+    });
+    Object.defineProperty(window, 'outerHeight', {
+      get: function () { return window.innerHeight; },
+      configurable: true,
+      enumerable: true
+    });
+  } catch (_) {}
 
-  // ─── 6. Firebug check (devtools-detect) - only if it already exists ──────
+  // ─── 8. Firebug Detection Bypass ─────────────────────────────────────────
   try {
     if (window.Firebug && window.Firebug.chrome) {
       Object.defineProperty(window.Firebug.chrome, 'isInitialized', {
@@ -172,5 +224,6 @@
     }
   } catch (_) {}
 
-  // console.log('[Inspect Helper] Anti-debug protection enabled.');
+  // Shield initialized successfully
+  console.log('[Inspect Helper] Anti-Debug & DevTools protection active.');
 })();

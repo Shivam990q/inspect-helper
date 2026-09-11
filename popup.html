@@ -5,101 +5,163 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      width: 300px;
-      padding: 20px;
-      max-height: 420px;
-      overflow-y: auto;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+      width: 320px;
+      padding: 18px;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(145deg, #101426 0%, #171d38 100%);
       color: #eee;
     }
-    h1 {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #e94560;
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
     }
-    p {
-      font-size: 12px;
-      line-height: 1.5;
-      color: #a0a0a0;
-      margin-bottom: 16px;
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+    }
+    h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 12px;
+      color: #10b981;
+      font-size: 10px;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+    .features {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #cbd5e1;
+    }
+    .feature-item svg {
+      width: 13px;
+      height: 13px;
+      color: #e94560;
+      flex-shrink: 0;
     }
     button {
       width: 100%;
-      padding: 12px 20px;
-      font-size: 14px;
+      padding: 11px 16px;
+      font-size: 13px;
       font-weight: 600;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       background: linear-gradient(135deg, #e94560 0%, #c73e54 100%);
       color: white;
-      transition: transform 0.15s, box-shadow 0.15s;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
     }
     button:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+      box-shadow: 0 6px 16px rgba(233, 69, 96, 0.45);
     }
     button:active { transform: translateY(0); }
-    .shortcut {
-      margin-top: 12px;
-      padding: 10px;
+    .footer {
+      margin-top: 14px;
       font-size: 11px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 6px;
-      color: #888;
+      text-align: center;
+      color: #94a3b8;
     }
-    .shortcut strong { color: #e94560; }
-    .shortcut a {
+    .footer a {
       color: #e94560;
       text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin: 0 5px;
     }
-    .shortcut a:hover { text-decoration: underline; }
-    .shortcut .link-icon {
-      vertical-align: middle;
-      width: 14px;
-      height: 14px;
-      margin-right: 4px;
-      display: inline-block;
-    }
+    .footer a:hover { text-decoration: underline; }
     .dev-by {
       display: block;
-      margin-top: 12px;
-      padding: 10px 14px;
-      background: linear-gradient(135deg, rgba(233, 69, 96, 0.3) 0%, rgba(199, 62, 84, 0.25) 100%);
-      border: 1px solid rgba(233, 69, 96, 0.5);
+      margin-top: 10px;
+      padding: 8px;
+      background: rgba(233, 69, 96, 0.15);
+      border: 1px solid rgba(233, 69, 96, 0.35);
       border-radius: 6px;
-      text-align: center;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       color: #fff;
-      letter-spacing: 0.8px;
-      box-shadow: 0 2px 8px rgba(233, 69, 96, 0.3);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      letter-spacing: 0.5px;
     }
   </style>
 </head>
 <body>
-  <img src="logo.jpg" alt="Inspect Helper" style="display:block;width:48px;height:48px;margin:0 auto 12px;border-radius:8px;">
-  <h1>Inspect Helper</h1>
-  <p>Enable right-click & Inspect on this page when sites block it.</p>
-  <button id="enable">Enable Right Click</button>
-  <div class="shortcut">
-    <p style="margin-bottom: 8px;">
-      <strong>📖 How to use:</strong> Go to a site that blocks right-click, click the button above to enable, then right-click any element → Inspect.
-    </p>
-    <p style="margin-bottom: 8px;">
-      <strong>✅ Bypassed:</strong> Right-click, Inspect, and copy are now enabled on this page.
-    </p>
-    <p style="margin-bottom: 8px;">
-      <strong>💡 Tip:</strong> Use <kbd>Ctrl+Shift+I</kbd> or <kbd>F12</kbd> to open DevTools. Tab closes? Undock DevTools (right-click DevTools tab → Undock).
-    </p>
-    <p style="margin-bottom: 8px;">
-      <a href="https://www.linkedin.com/in/ur-990q" target="_blank" rel="noopener"><svg class="link-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a> · <a href="https://github.com/Shivam990q" target="_blank" rel="noopener"><svg class="link-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>GitHub</a>
-    </p>
+  <div class="header">
+    <img src="logo.jpg" alt="Inspect Helper" class="logo">
+    <div>
+      <h1>Inspect Helper</h1>
+      <div class="status-badge">
+        <span class="status-dot"></span> Active & Protecting
+      </div>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feature-item">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+      <span>F12 & Ctrl+Shift+I/J/C unblocked</span>
+    </div>
+    <div class="feature-item">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+      <span>Right-click & Copy enabled</span>
+    </div>
+    <div class="feature-item">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+      <span>Tab auto-close blocked</span>
+    </div>
+    <div class="feature-item">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+      <span>Infinite debugger loops neutralized</span>
+    </div>
+  </div>
+
+  <button id="enable">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+    <span>Force Re-Unlock Page</span>
+  </button>
+
+  <div class="footer">
+    <a href="https://www.linkedin.com/in/ur-990q" target="_blank" rel="noopener">LinkedIn</a> ·
+    <a href="https://github.com/Shivam990q" target="_blank" rel="noopener">GitHub</a>
     <span class="dev-by">Developed by SHIVAM ERP DEV.</span>
   </div>
+
   <script src="popup.js"></script>
 </body>
 </html>

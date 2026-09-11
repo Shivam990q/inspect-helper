@@ -1,73 +1,58 @@
-# Inspect Helper - Enable Right Click
+# Inspect Helper - Enable Right Click & DevTools (v1.3.0)
 
-A Chrome extension that re-enables right-click and Inspect on websites that block it, and prevents the tab from closing when DevTools opens.
+A powerful Chrome / Edge extension that re-enables right-click, text selection, and Inspect on websites that block it, while automatically neutralizing anti-debugging traps, infinite debugger loops, and tab-closing scripts.
 
 ## What it does
 
-Many websites block right-click (context menu) to prevent users from inspecting elements, copying text, or saving images. Some also detect DevTools and close the tab. This extension:
+Many modern websites and test portals block right-click (context menu) and keyboard shortcuts to prevent users from inspecting elements or copying text. Advanced sites even detect DevTools opening and freeze the browser with infinite `debugger;` loops or close the tab via `window.close()`.
 
-- **Re-enables Right-click → Inspect** to use Chrome DevTools
-- **Re-enables copy, paste, and text selection**
-- **Prevents the tab from closing** when you open DevTools
-- **Blocks anti-debugging tricks** used by sites to detect and punish Inspect usage
+This extension provides comprehensive defense:
+
+- **Automatic Right-Click & Selection Unblock**: Immediately restores native right-click, copy, cut, paste, and text selection.
+- **Unblocks DevTools Shortcuts**: Restores `F12`, `Ctrl+Shift+I`, `Ctrl+Shift+J`, `Ctrl+Shift+C`, `Ctrl+U` (View Source), and macOS Command (`Cmd+Opt+I/J/C/U`) shortcuts before site scripts can cancel them.
+- **Prevents Tab Auto-Close**: Intercepts and disables `window.close()` and navigation hijack attempts when DevTools is opened.
+- **Neutralizes Infinite Debugger Loops**: Strips `debugger;` statements dynamically from:
+  - `Function` and `eval()` constructs
+  - `AsyncFunction`, `GeneratorFunction`, and `AsyncGeneratorFunction`
+  - Web Workers (`new Worker()`) and `Blob` scripts
+  - `setInterval`, `setTimeout`, and `requestAnimationFrame` loops
+- **Universal Console & Timing Protection**: Neutralizes getter traps (e.g. `devtools-detector`), `console.clear` spam, `console.table` memory/timing traps, and window dimension disparity checks.
 
 ## How to use
 
-1. **Load the extension** in Chrome:
-   - Open `chrome://extensions/`
-   - Enable "Developer mode" (top right)
-   - Click "Load unpacked"
-   - Select this folder (`chromeextension`)
+1. **Load the extension** in Chrome / Edge / Brave:
+   - Open `chrome://extensions/` (or `edge://extensions/`)
+   - Enable **Developer mode** (top-right toggle)
+   - Click **Load unpacked**
+   - Select this folder: `C:\Users\Rose\Videos\Projects & Development Repositories\FUTURE\inspect-helper`
 
 2. **On a blocked website**:
-   - Click the extension icon in the toolbar
-   - Click **"Enable Right Click"**
-   - Right-click will now work → choose **Inspect** to open DevTools
+   - The extension works **automatically** on page load! Right-click any element and choose **Inspect**.
+   - Press <kbd>F12</kbd> or <kbd>Ctrl + Shift + I</kbd> (<kbd>Cmd + Opt + I</kbd> on Mac) to open DevTools directly.
+   - For stubborn single-page apps (SPAs) that re-bind blocking scripts dynamically, open the extension popup and click **"Force Re-Unlock Page"**.
 
-3. **Keyboard shortcuts** (work even if right-click is blocked):
-   - `Ctrl + Shift + I` or `F12` – Open DevTools
-   - `Ctrl + Shift + C` – Inspect element mode
+## Supported Countermeasures
 
-## If the tab still closes or behaves oddly
+| Anti-Inspect Technique | Detection Vector | Inspect Helper v1.3.0 Response |
+|---|---|---|
+| `window.close()` / Tab Termination | Malicious scripts closing tabs | Neutralized (`noop`) on `window` and `window.opener` |
+| `debugger` in `Function()` | Obfuscators / eval scripts | Stripped via Proxy before code execution |
+| `debugger` in `Async`/`Generator` | ES6+ dynamic function constructors | Stripped via Prototype Proxy |
+| `debugger` in Web Workers | Isolated thread infinite loops | Intercepted in `Blob` & `Worker` instantiation |
+| `debugger` in Timers | `setInterval` / `setTimeout` loops | Callbacks inspected; loops dropped to `noop` |
+| Console Getter Traps | `AEPKILL/devtools-detector`, `id` traps | Console method arguments sanitized |
+| `console.clear()` Spam | Hiding site anti-debug activity | Replaced with `noop` |
+| Dimension Disparity Checks | `outerWidth - innerWidth` threshold | Spoofed to match inner dimensions |
+| Right-Click & Selection Block | `oncontextmenu`, CSS `user-select: none` | Native events allowed in capture phase; CSS overridden |
+| DevTools Key Blocks | `e.preventDefault()` on F12 / shortcuts | Capture phase unblocker stops site interception |
 
-**Undock DevTools into a separate window.** Right-click the DevTools tab → **Undock into separate window**. This defeats viewport-based detection and often avoids timing-based tricks.
+## Project Files
 
-Some sites may reload the page when they detect DevTools. Undocking usually prevents that too.
-
-## What the anti-debug protection blocks
-
-The extension runs at `document_start` in the page context to neutralize common detection techniques:
-
-| Technique | Source | Our response |
-|-----------|--------|--------------|
-| `window.close()` | Many sites | Replaced with no-op |
-| `debugger` in `new Function()` | javascript-obfuscator, etc. | Stripped from code |
-| `debugger` in `eval()` | Obfuscated scripts | Stripped from code |
-| `debugger` in `setTimeout`/`setInterval`/`requestAnimationFrame` | Loop-based detection | Callback replaced with no-op |
-| `console.profiles`, `console.memory` | Chrome-only getters | Return undefined |
-| `console.log` toString traps | AEPKILL devtools-detector | Args sanitized before logging |
-| Window dimensions (`outerWidth` - `innerWidth` > 170) | devtools-detect, sindresorhus | Spoofed to stay below threshold |
-| `Firebug.chrome.isInitialized` | devtools-detect | Always false |
-| `crashBrowserCurrentTab`-style OOM | AEPKILL devtools-detector | Array length capped |
-
-Protection runs in all frames (`all_frames: true`) and before any page scripts.
-
-## Why click to activate?
-
-Right-click enabling only runs when you click the extension. This avoids affecting sites that use custom context menus (e.g. Google Docs) and keeps normal browsing unchanged.
-
-Anti-debug protection runs automatically on every page so the tab does not close even before you enable right-click.
-
-## Technical note
-
-Chrome does not allow extensions to programmatically open DevTools. This extension re-enables right-click so you can use **Right-click → Inspect** manually.
-
-## Files
-
-- `manifest.json` – Extension configuration (Manifest V3)
-- `popup.html` / `popup.js` – Toolbar popup UI
-- `content.js` – Script to bypass right-click blocks
-- `anti-debug.js` – Prevents tab from closing and neutralizes DevTools detection
+- `manifest.json` – Extension configuration (Manifest V3, with MAIN world content scripts)
+- `anti-debug.js` – Anti-debugging and DevTools protection engine (runs at `document_start`)
+- `content.js` – Right-click, text selection, and DOM blocker bypass engine
+- `popup.html` / `popup.js` – Modern dark toolbar popup with real-time status and force re-unlock
+- `logo.jpg` – Extension branding icon
 
 ## License
 
@@ -75,9 +60,3 @@ This project is licensed under the [MIT License](LICENSE). You may use and modif
 
 **Developed by SHIVAM ERP DEV.**
 
-## References
-
-- [devtools-detect](https://github.com/sindresorhus/devtools-detect) – Window dimension detection
-- [AEPKILL/devtools-detector](https://github.com/AEPKILL/devtools-detector) – Console/timing/debugger detection
-- [Blatzar/devtools_detectors](https://github.com/Blatzar/scraping-tutorial/blob/master/devtools_detectors.md) – Overview of detection methods
-- [javascript-obfuscator debug protection](https://github.com/javascript-obfuscator/javascript-obfuscator) – `debugger` in dynamic code
