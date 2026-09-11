@@ -1,22 +1,56 @@
-# Inspect Helper - Enable Right Click & DevTools (v1.3.0)
+# Inspect Helper - Ultimate Anti-Debug & DevTools Unblocker (v2.0.0)
 
-A powerful Chrome / Edge extension that re-enables right-click, text selection, and Inspect on websites that block it, while automatically neutralizing anti-debugging traps, infinite debugger loops, and tab-closing scripts.
+A world-class Chrome, Edge, and Brave extension that re-enables right-click, text selection, copy/paste, and DevTools on websites that block it, while automatically neutralizing anti-debugging traps, infinite debugger loops, proctoring tab-switch detection, and tab-closing scripts.
+
+Developed by **SHIVAM ERP DEV.**
+
+---
 
 ## What it does
 
-Many modern websites and test portals block right-click (context menu) and keyboard shortcuts to prevent users from inspecting elements or copying text. Advanced sites even detect DevTools opening and freeze the browser with infinite `debugger;` loops or close the tab via `window.close()`.
+Many modern websites, commercial obfuscators (`javascript-obfuscator`, JScrambler), and assessment portals block right-click (context menu) and keyboard shortcuts to prevent inspection. Advanced sites detect DevTools opening and freeze the browser with infinite `debugger;` loops, redirect to `about:blank`, or trigger tab-switch / blur warnings.
 
-This extension provides comprehensive defense:
+Inspect Helper Ultimate Edition v2.0.0 provides an impenetrable 12-layer defense running in the `MAIN` execution world before any website scripts run:
 
-- **Automatic Right-Click & Selection Unblock**: Immediately restores native right-click, copy, cut, paste, and text selection.
-- **Unblocks DevTools Shortcuts**: Restores `F12`, `Ctrl+Shift+I`, `Ctrl+Shift+J`, `Ctrl+Shift+C`, `Ctrl+U` (View Source), and macOS Command (`Cmd+Opt+I/J/C/U`) shortcuts before site scripts can cancel them.
-- **Prevents Tab Auto-Close**: Intercepts and disables `window.close()` and navigation hijack attempts when DevTools is opened.
+- **Native Code Camouflage (`makeNative`)**: Overrides `Function.prototype.toString` so every hooked method authenticates as `function () { [native code] }`, defeating obfuscator `selfDefending` traps.
+- **Pre-Emptive Library Neutralizers**: Automatically detects and freezes libraries like `DisableDevtool` (`theajack/disable-devtool`), `devtoolsDetector` (`AEPKILL`), `ConsoleBan`, and `devtools-detect` before they can initialize.
+- **Event Cancellation Guard**: Overrides `Event.prototype.preventDefault` on `contextmenu`, `copy`, `cut`, `paste`, `selectstart`, and DevTools key combinations, guaranteeing native browser menus and shortcuts work regardless of site listeners.
+- **Unblocks DevTools Shortcuts**: Restores `F12`, `Ctrl+Shift+I`, `Ctrl+Shift+J`, `Ctrl+Shift+C`, `Ctrl+U` (View Source), `Ctrl+S`, and macOS Command combinations (`Cmd+Opt+I/J/C/U`).
+- **Prevents Tab Auto-Close & Blanking**: Intercepts and disables `window.close()` and redirect hijacks when DevTools is opened.
 - **Neutralizes Infinite Debugger Loops**: Strips `debugger;` statements dynamically from:
   - `Function` and `eval()` constructs
   - `AsyncFunction`, `GeneratorFunction`, and `AsyncGeneratorFunction`
-  - Web Workers (`new Worker()`) and `Blob` scripts
+  - Web Workers (`new Worker()`), `SharedWorker`, and `Blob` scripts
   - `setInterval`, `setTimeout`, and `requestAnimationFrame` loops
-- **Universal Console & Timing Protection**: Neutralizes getter traps (e.g. `devtools-detector`), `console.clear` spam, `console.table` memory/timing traps, and window dimension disparity checks.
+- **Proctoring & Anti-Tab-Switch Shield**: Spoofs `document.hidden = false`, `document.visibilityState = 'visible'`, and `document.hasFocus() = true`, while swallowing window blur/visibilitychange events.
+- **Closed Shadow DOM Piercing**: Hooks `Element.prototype.attachShadow` to force `mode: 'open'`, allowing full inspection of encapsulated elements.
+- **Transparent Blocker Overlay Removal**: Automatically detects and disables invisible full-screen click-stealing overlay `<div>` elements.
+- **Clipboard Freedom**: Ensures `navigator.clipboard` APIs and paste events remain fully accessible.
+- **Viewport Disparity Alignment**: Dynamically aligns `outerWidth/Height` to `innerWidth/Height` to bypass docking detection.
+
+---
+
+## Supported Countermeasures (12-Layer Matrix)
+
+| Anti-Inspect Vector | Used By / Technique | Inspect Helper v2.0.0 Countermeasure |
+|---|---|---|
+| **`selfDefending` Integrity Checks** | `javascript-obfuscator` | `makeNative()` WeakMap spoofing returns `[native code]` |
+| **`DisableDevtool` Library** | `theajack/disable-devtool` (3.2k★) | Pre-defined frozen object with `isSuspend: true` |
+| **`devtools-detector`** | `AEPKILL/devtools-detector` | Pre-defined dummy object with `isLaunch: false` |
+| **`ConsoleBan`** | `flashthemes/console-ban` | Pre-defined dummy with `init: noop` |
+| **`window.close()` / Tab Termination** | Malicious anti-debug pages | Neutralized (`noop`) on `window` and `window.opener` |
+| **`debugger;` in Constructors** | Obfuscated code, dynamic eval | Stripped dynamically via constructor prototypes |
+| **`debugger;` in Web Workers** | Background thread freezes | Intercepted and sanitized in `Blob` & `Worker` |
+| **`debugger;` in Timers** | `setInterval` / `setTimeout` loops | Callbacks inspected; probe loops discarded |
+| **Console Getter Traps** | Object getter traps on `id`, `toString` | Arguments sanitized before console methods |
+| **`console.clear()` Spam** | Hiding site anti-debug activity | Replaced with `noop` |
+| **Tab-Switch & Blur Proctoring** | Assessment portals | `document.hidden = false`, `hasFocus = true`, blur swallowed |
+| **Closed Shadow DOM** | Encapsulated components | `Element.prototype.attachShadow` forced to `mode: 'open'` |
+| **Transparent Blocker Overlays** | Paywalls & blogs | Zero-opacity fixed elements set to `pointer-events: none` |
+| **Right-Click & Selection Block** | `oncontextmenu`, CSS `user-select: none` | `preventDefault` bypassed; CSS overridden with `!important` |
+| **DevTools Key Blocks** | `e.preventDefault()` on F12 / shortcuts | Capture phase unblocker and `preventDefault` guard |
+
+---
 
 ## How to use
 
@@ -26,37 +60,28 @@ This extension provides comprehensive defense:
    - Click **Load unpacked**
    - Select this folder: `C:\Users\Rose\Videos\Projects & Development Repositories\FUTURE\inspect-helper`
 
-2. **On a blocked website**:
-   - The extension works **automatically** on page load! Right-click any element and choose **Inspect**.
+2. **On a protected website**:
+   - The extension works **automatically** on page load!
+   - Right-click any element and choose **Inspect**.
    - Press <kbd>F12</kbd> or <kbd>Ctrl + Shift + I</kbd> (<kbd>Cmd + Opt + I</kbd> on Mac) to open DevTools directly.
-   - For stubborn single-page apps (SPAs) that re-bind blocking scripts dynamically, open the extension popup and click **"Force Re-Unlock Page"**.
+   - For single-page apps (SPAs) that dynamically re-bind restrictions, open the extension popup and click **"Force Re-Unlock Page"**.
 
-## Supported Countermeasures
+---
 
-| Anti-Inspect Technique | Detection Vector | Inspect Helper v1.3.0 Response |
-|---|---|---|
-| `window.close()` / Tab Termination | Malicious scripts closing tabs | Neutralized (`noop`) on `window` and `window.opener` |
-| `debugger` in `Function()` | Obfuscators / eval scripts | Stripped via Proxy before code execution |
-| `debugger` in `Async`/`Generator` | ES6+ dynamic function constructors | Stripped via Prototype Proxy |
-| `debugger` in Web Workers | Isolated thread infinite loops | Intercepted in `Blob` & `Worker` instantiation |
-| `debugger` in Timers | `setInterval` / `setTimeout` loops | Callbacks inspected; loops dropped to `noop` |
-| Console Getter Traps | `AEPKILL/devtools-detector`, `id` traps | Console method arguments sanitized |
-| `console.clear()` Spam | Hiding site anti-debug activity | Replaced with `noop` |
-| Dimension Disparity Checks | `outerWidth - innerWidth` threshold | Spoofed to match inner dimensions |
-| Right-Click & Selection Block | `oncontextmenu`, CSS `user-select: none` | Native events allowed in capture phase; CSS overridden |
-| DevTools Key Blocks | `e.preventDefault()` on F12 / shortcuts | Capture phase unblocker stops site interception |
+## Project Structure
 
-## Project Files
-
-- `manifest.json` – Extension configuration (Manifest V3, with MAIN world content scripts)
-- `anti-debug.js` – Anti-debugging and DevTools protection engine (runs at `document_start`)
-- `content.js` – Right-click, text selection, and DOM blocker bypass engine
-- `popup.html` / `popup.js` – Modern dark toolbar popup with real-time status and force re-unlock
+- `manifest.json` – Manifest V3 configuration with `MAIN` world content scripts
+- `anti-debug.js` – Core anti-debugging, library neutralizer, and native camouflage engine
+- `content.js` – Right-click, DOM unblocker, transparent overlay remover, and CSS injector
+- `popup.html` / `popup.js` – Dark glassmorphism toolbar popup with live shield indicators
 - `logo.jpg` – Extension branding icon
 
-## License
+---
 
-This project is licensed under the [MIT License](LICENSE). You may use and modify this extension, but you **must** retain the copyright notice and give proper credit to **SHIVAM ERP DEV** and this repository in any derivative work.
+## License & Credits
+
+This project is licensed under the [MIT License](LICENSE).
 
 **Developed by SHIVAM ERP DEV.**
-
+- **GitHub**: [Shivam990q](https://github.com/Shivam990q)
+- **LinkedIn**: [ur-990q](https://www.linkedin.com/in/ur-990q)
