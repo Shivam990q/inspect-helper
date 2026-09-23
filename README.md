@@ -1,8 +1,13 @@
-# Inspect Helper - Ultimate Anti-Debug & DevTools Unblocker (v2.0.0)
+# Inspect Helper — Ultimate Anti-Debug & DevTools Unblocker (v2.0.0)
+
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg?logo=googlechrome&logoColor=white)](manifest.json)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/Shivam990q/inspect-helper?color=orange&logo=github)](https://github.com/Shivam990q/inspect-helper/releases)
+[![Cyber Security](https://img.shields.io/badge/Domain-Reverse%20Engineering%20%26%20VAPT-red.svg)](#supported-countermeasures-12-layer-matrix)
 
 A world-class Chrome, Edge, and Brave extension that re-enables right-click, text selection, copy/paste, and DevTools on websites that block it, while automatically neutralizing anti-debugging traps, infinite debugger loops, proctoring tab-switch detection, and tab-closing scripts.
 
-Developed by **SHIVAM ERP DEV.**
+Developed by **Shivam Gupta** ([Shivam990q](https://github.com/Shivam990q)).
 
 ---
 
@@ -82,6 +87,6 @@ Inspect Helper Ultimate Edition v2.0.0 provides an impenetrable 12-layer defense
 
 This project is licensed under the [MIT License](LICENSE).
 
-**Developed by SHIVAM ERP DEV.**
-- **GitHub**: [Shivam990q](https://github.com/Shivam990q)
-- **LinkedIn**: [ur-990q](https://www.linkedin.com/in/ur-990q)
+**Developed by Shivam Gupta.**
+- **GitHub**: [@Shivam990q](https://github.com/Shivam990q)
+- **LinkedIn**: [Shivam Gupta](https://www.linkedin.com/in/shivamg031)
